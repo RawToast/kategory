@@ -46,7 +46,7 @@ an exception may be thrown.
 
 #### The issues with exceptions
 
-Exceptions can be seen as GOTO statement given they interrupt the program flow by jumping back to the caller.
+Exceptions can be seen as GOTO statements given they interrupt the program flow by jumping back to the caller.
 Exceptions are not consistent as throwing an exception may not survive async boundaries, that is to say that one can't rely on exceptions for error handling
 in async code since invoking a function that is async inside a `try/catch` may not capture the exception potentially thrown in a different thread.
 
@@ -96,11 +96,12 @@ public class Throwable {
 }
 ```
 
-Constructing an exception may be as costly as your current Thread stack size and it's also platform dependent since `fillInStackTrace` calls into native code.
+Constructing an exception may be as costly as your current Thread stack size; moreover, it's platform dependent since `fillInStackTrace` calls into native code.
 
 More info in the cost of instantiating Throwables and throwing exceptions in generals can be found in the links below.
 
 > [The Hidden Performance costs of instantiating Throwables](http://normanmaurer.me/blog/2013/11/09/The-hidden-performance-costs-of-instantiating-Throwables/)
+> [The Exceptional Performance of Lil' Exception](https://shipilev.net/blog/2014/exceptional-performance/)
 > * New: Creating a new Throwable each time
 > * Lazy: Reusing a created Throwable in the method invocation.
 > * Static: Reusing a static Throwable with an empty stacktrace.
@@ -153,7 +154,7 @@ While we could model this problem using `Option` and forgetting about exceptions
 For this reason using `Option` is only a good idea when we know that values may be absent but we don't really care about the reason why.
 Additionally `Option` is unable to capture exceptions so if an exception was thrown internally it would still bubble up and result in a runtime exception.
 
-In the next example we are going to use `Try` to deal with potentially thrown exceptions that are outside the control of the caller.
+In the next example we are going to use `Try` to deal with exceptions that are outside the control of the caller.
 
 ### Try
 
@@ -190,7 +191,7 @@ val result = arm()
 result.fold({ ex -> "BOOM!: $ex"}, { "Got: $it" })
 ```
 
-Just like it does for `Option`, Arrow also provides `Monad` instances for `Try` and we can use it exactly in the same way
+Just like it does for `Option`, Arrow also provides `Monad` instances for `Try` and we can use it exactly in the same way.
 
 ```kotlin
 fun attackTry(): Try<Impacted> =
@@ -206,7 +207,7 @@ attackTry()
 ```
 
 While `Try` gives us the ability to control both the `Success` and `Failure` cases there is still nothing in the function signatures that indicate the type of exception.
-We are still subject to guess what the exception is using Kotlin `when` expressions or runtime lookups over the unsealed hierarchy of Throwable.
+We will have to guess what exceptions to handle is using Kotlin `when` expressions or runtime lookups over the unsealed hierarchy of Throwable.
 
 It turns out that all exceptions thrown in our example are actually known to the system so there is no point in modeling these exceptional cases as
 `java.lang.Exception`
@@ -234,8 +235,8 @@ typealias MissedByMeters = NukeException.MissedByMeters
 ```
 
 This type of definition is commonly known as an Algebraic Data Type or Sum Type in most FP capable languages.
-In Kotlin it is encoded using sealed hierarchies. We can think of sealed hierarchies as a declaration of a type and all it'
-s possible states.
+In Kotlin it is encoded using sealed hierarchies. We can think of sealed hierarchies as a declaration of a type and all 
+it's possible states.
 
 Once we have an ADT defined to model our known errors we can redefine our functions.
 
@@ -264,7 +265,7 @@ attackEither()
 
 We have seen so far how we can use `Option`, `Try` and `Either` to handle exceptions in a purely functional way.
 
-The question now is, can we further generalize error handling and write this code in a way that is abstract from the actual datatypes that it uses.
+The question now is, can we further generalize error handling and write this code in a way that is abstract from the actual datatypes that it uses?
 Since Arrow supports typeclasses, emulated higher kinds and higher order abstractions we can rewrite this in a fully polymorphic way thanks to [`MonadError`]({{ '/docs/typeclasses/monaderror' | relative_url }})
 
 ### MonadError
